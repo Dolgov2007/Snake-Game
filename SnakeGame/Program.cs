@@ -13,6 +13,9 @@ namespace SnakeGame
         static List<(int sx, int sy)> snake = new List<(int sx, int sy)>();
         static (int fx, int fy) food;
 
+        static string direction = "UP";
+        static bool gameOver = false;
+
 
         // очистка консоли
         static void ClearConsole()
@@ -23,13 +26,42 @@ namespace SnakeGame
         // считывание с клавиатуры
         static void ReadInput()
         {
+            var key = Console.ReadKey(true).Key;
 
+            switch (key)
+            {
+                case ConsoleKey.W:
+                    if (direction != "DOWN")
+                        direction = "UP";
+                    break;
+                case ConsoleKey.S:
+                    if (direction != "UP")
+                        direction = "DOWN";
+                    break;
+                case ConsoleKey.A:
+                    if (direction != "RIGHT")
+                        direction = "LEFT";
+                    break;
+                case ConsoleKey.D:
+                    if (direction != "LEFT")
+                        direction = "RIGHT";
+                    break;
+
+                case ConsoleKey.E:
+                case ConsoleKey.Escape:
+                    direction = "EXIT";
+                    break;
+            }
         }
 
         // движение змейки
         static void SnakeMove()
         {
-            
+            if (direction == "EXIT")
+            {
+                gameOver = true;
+                return;
+            }    
         }
 
         // появление еды на карте
@@ -100,7 +132,7 @@ namespace SnakeGame
 
             SpawnFood();
 
-            while (true)
+            while (!gameOver)
             {
                 Draw();
                 Thread.Sleep(100);
