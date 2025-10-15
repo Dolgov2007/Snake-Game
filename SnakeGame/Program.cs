@@ -16,8 +16,11 @@ namespace SnakeGame
         static List<(int sx, int sy)> snake = new List<(int sx, int sy)>();
         static (int fx, int fy) food;
 
-        static string direction = "UP";
-        static bool gameOver = false;
+        static string direction;
+        static bool gameOver;
+        static int difficulty;
+        static int appleCounter;
+        static DateTime startTime;
 
 
         // очистка консоли
@@ -102,6 +105,7 @@ namespace SnakeGame
             // проверка на еду
             if (newHead == food)
             {
+                appleCounter++;
                 SpawnFood();
             }
             else
@@ -121,8 +125,8 @@ namespace SnakeGame
         {
             while (true)
             {
-                int fx = rnd.Next(2, WIDTH);
-                int fy = rnd.Next(2, HEIGHT);
+                int fx = rnd.Next(1, WIDTH - 1);
+                int fy = rnd.Next(1, HEIGHT - 1);
 
                 bool onSnake = false;
                 foreach (var part in snake)
@@ -171,18 +175,108 @@ namespace SnakeGame
             }
         }
 
+        // проверка на победу
         static void CheckWin()
         {
             if (snake.Count == (WIDTH - 1) * (HEIGHT - 1))
             {
+                Console.WriteLine("Поздравляем! Вы стали самой длинной змейкой в мире!");
+                gameOver = true;
                 return;
             }
         }
 
-        static void Main()
+        // отображение статистики
+        static void ViewStats()
         {
-            // ДОБАВИТЬ МЕНЮ + ВЫБОР СЛОЖНОСТИ
+            Console.WriteLine("===== Ваш результат =====");
+            Console.WriteLine($"Длина змейки: {snake.Count}");
+            Console.WriteLine($"Яблок съедено: {appleCounter}");
+            Console.WriteLine($"Время игры: {(DateTime.Now - startTime).TotalSeconds:F1} секунд");
+            Console.WriteLine("=========================");
 
+            Console.WriteLine("Нажмите любую клавишу, чтобы продолжить");
+            Console.ReadKey(true);
+        }
+
+        // начальное меню
+        static void ShowMenu()
+        {
+            ClearConsole();
+            Console.WriteLine("================================");
+            Console.WriteLine("Добро пожаловать в игру Змейка!");
+            Console.WriteLine("================================");
+            Console.WriteLine("Управление: W A S D");
+            Console.WriteLine("Выход: E/Escape");
+            Console.WriteLine("================================");
+            Console.WriteLine("1. Начать игру");
+            Console.WriteLine("2. Выход");
+            Console.WriteLine("Выберите пункт: ");
+
+            while (true)
+            {
+                string input = Console.ReadLine();
+                if (input == "1")
+                {
+                    Game();
+                    break;
+                }
+                else if (input == "2")
+                {
+                    Environment.Exit(0);
+                }
+                else
+                {
+                    Console.WriteLine("Введите 1 или 2!"); 
+                }
+            }
+        }
+
+        // выбор уровня сложности
+        static void ChooseDifficulty()
+        {
+            while (true)
+            {
+                ClearConsole();
+                Console.WriteLine("================================");
+                Console.WriteLine("Выберите уровень сложности: ");
+                Console.WriteLine("1. Лёгкий");
+                Console.WriteLine("2. Средний");
+                Console.WriteLine("3. Сложный");
+                Console.WriteLine("================================");
+
+                string input = Console.ReadLine();
+
+                if (int.TryParse(input, out int choice))
+                {
+                    switch (choice)
+                    {
+                        case 1:
+                            difficulty = 300;
+                            return;
+                        case 2:
+                            difficulty = 200;
+                            return;
+                        case 3:
+                            difficulty = 100;
+                            return;
+                    }
+                }
+                else
+                {
+                    Console.WriteLine("Ошибка ввода! Попробуйте снова.");
+                }
+            }
+        }
+
+        // основной цикл игры
+        static void Game()
+        {
+            ChooseDifficulty();
+
+            gameOver = false;
+            direction = "UP";
+            appleCounter = 0;
             snake.Clear();
             snake.Add((WIDTH / 2, HEIGHT / 2));
 
@@ -191,14 +285,23 @@ namespace SnakeGame
             Thread Input = new Thread(ReadInput);
             Input.Start();
 
+            startTime = DateTime.Now;
+
             while (!gameOver)
             {
                 SnakeMove();
                 Draw();
-                Thread.Sleep(200);
+                CheckWin();
+                Thread.Sleep(difficulty);
             }
 
-            // ДОБАВИТЬ СТАТИСТИКУ + CHECKWIN
+            ViewStats();
+        }
+
+        static void Main()
+        {
+            while (true)
+                ShowMenu();
         }
     }
 }
