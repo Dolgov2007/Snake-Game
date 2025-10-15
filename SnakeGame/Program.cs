@@ -8,8 +8,8 @@ namespace SnakeGame
     static class Program
     {
         // данные
-        const int WIDTH = 20;
-        const int HEIGHT = 20;
+        const int WIDTH = 21;
+        const int HEIGHT = 21;
 
         static Random rnd = new Random();
 
@@ -21,6 +21,7 @@ namespace SnakeGame
         static int difficulty;
         static int appleCounter;
         static DateTime startTime;
+        static int score;
 
 
         // очистка консоли
@@ -34,7 +35,9 @@ namespace SnakeGame
         {
             while (!gameOver)
             {
-            var key = Console.ReadKey(true).Key;
+                if (!Console.KeyAvailable)
+                    continue;
+                var key = Console.ReadKey(true).Key;
 
                 switch (key)
                 {
@@ -144,6 +147,12 @@ namespace SnakeGame
                     break;
                 }
             }
+
+            // увеличение уровня сложности
+            if (appleCounter != 0 && appleCounter % 5 == 0)
+            {
+                difficulty -= 10;
+            }
         }
 
         // отрисовка всего
@@ -155,18 +164,39 @@ namespace SnakeGame
             {
                 for (int x = 0; x < WIDTH; x++)
                 {
+                    // верхняя и нижняя стены
                     if (y == 0 || y == HEIGHT - 1)
-                        Console.Write("#");
+                    {
+                        // счётчик яблок
+                        if (y == 0 && 9 <= x && x <= 11)
+                        {
+                            switch (appleCounter)
+                            {
+                                case < 10:
+                                    Console.Write($"00{appleCounter}");
+                                    break;
+                                case > 99:
+                                    Console.Write(appleCounter);
+                                    break;
+                                default:
+                                    Console.Write($"0{appleCounter}");
+                                    break;
+                            }
+                            x += 2;
+                        }
+                        else
+                            Console.Write("█");
+                    }
                     else
                     {
                         if (x == 0 || x == WIDTH - 1)
-                            Console.Write("#");
+                            Console.Write("█");
                         else if ((x, y) == snake[0])
-                            Console.Write("O");
+                            Console.Write("◉");
                         else if (snake.Skip(1).Contains((x, y)))
-                            Console.Write("o");
+                            Console.Write("○");
                         else if (x == food.fx && y == food.fy)
-                            Console.Write("@");
+                            Console.Write("");
                         else
                             Console.Write(" ");
                     }
@@ -189,10 +219,14 @@ namespace SnakeGame
         // отображение статистики
         static void ViewStats()
         {
+            TimeSpan playTime = DateTime.Now - startTime;
+            score *= appleCounter;
+
+            ClearConsole();
             Console.WriteLine("===== Ваш результат =====");
-            Console.WriteLine($"Длина змейки: {snake.Count}");
+            Console.WriteLine($"Очки: {score}");
             Console.WriteLine($"Яблок съедено: {appleCounter}");
-            Console.WriteLine($"Время игры: {(DateTime.Now - startTime).TotalSeconds:F1} секунд");
+            Console.WriteLine($"Время игры: {playTime.Minutes:F0} минут {playTime.Seconds:F0} секунд");
             Console.WriteLine("=========================");
 
             Console.WriteLine("Нажмите любую клавишу, чтобы продолжить");
@@ -203,31 +237,30 @@ namespace SnakeGame
         static void ShowMenu()
         {
             ClearConsole();
-            Console.WriteLine("================================");
-            Console.WriteLine("Добро пожаловать в игру Змейка!");
-            Console.WriteLine("================================");
+
+            Console.WriteLine("=================================");
+            Console.WriteLine(" Добро пожаловать в игру Змейка!");
+            Console.WriteLine("=================================");
             Console.WriteLine("Управление: W A S D");
             Console.WriteLine("Выход: E/Escape");
-            Console.WriteLine("================================");
+            Console.WriteLine("=================================");
+            Console.WriteLine("Выберите пункт: ");
             Console.WriteLine("1. Начать игру");
             Console.WriteLine("2. Выход");
-            Console.WriteLine("Выберите пункт: ");
+            Console.WriteLine("=================================");
 
             while (true)
             {
-                string input = Console.ReadLine();
-                if (input == "1")
+                var key = Console.ReadKey(true).Key;
+
+                switch (key)
                 {
-                    Game();
-                    break;
-                }
-                else if (input == "2")
-                {
-                    Environment.Exit(0);
-                }
-                else
-                {
-                    Console.WriteLine("Введите 1 или 2!"); 
+                    case ConsoleKey.D1:
+                        Game();
+                        return;
+                    case ConsoleKey.D2:
+                        Environment.Exit(0);
+                        break;
                 }
             }
         }
@@ -245,26 +278,25 @@ namespace SnakeGame
                 Console.WriteLine("3. Сложный");
                 Console.WriteLine("================================");
 
-                string input = Console.ReadLine();
-
-                if (int.TryParse(input, out int choice))
+                while (true)
                 {
-                    switch (choice)
+                    var key = Console.ReadKey(true).Key;
+
+                    switch (key)
                     {
-                        case 1:
+                        case ConsoleKey.D1:
                             difficulty = 300;
+                            score = 10;
                             return;
-                        case 2:
+                        case ConsoleKey.D2:
                             difficulty = 200;
+                            score = 20;
                             return;
-                        case 3:
+                        case ConsoleKey.D3:
                             difficulty = 100;
+                            score = 30;
                             return;
                     }
-                }
-                else
-                {
-                    Console.WriteLine("Ошибка ввода! Попробуйте снова.");
                 }
             }
         }
@@ -272,14 +304,14 @@ namespace SnakeGame
         // основной цикл игры
         static void Game()
         {
-            ChooseDifficulty();
-
             gameOver = false;
             direction = "UP";
             appleCounter = 0;
+            score = 0;
             snake.Clear();
             snake.Add((WIDTH / 2, HEIGHT / 2));
 
+            ChooseDifficulty();
             SpawnFood();
 
             Thread Input = new Thread(ReadInput);
@@ -298,8 +330,12 @@ namespace SnakeGame
             ViewStats();
         }
 
+
         static void Main()
         {
+            // РУССКАЯ КЛАВИАТУРА
+            // БЫСТРОЕ ДВИЖЕНИЕ
+            // НАСТРОЙКИ + СТИЛИ??
             while (true)
                 ShowMenu();
         }
