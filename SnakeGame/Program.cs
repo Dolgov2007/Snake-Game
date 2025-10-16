@@ -17,6 +17,7 @@ namespace SnakeGame
         static (int fx, int fy) food;
 
         static string direction;
+        static string nextDirection;
         static bool gameOver;
         static int difficulty;
         static int appleCounter;
@@ -37,31 +38,41 @@ namespace SnakeGame
             {
                 if (!Console.KeyAvailable)
                     continue;
-                var key = Console.ReadKey(true).Key;
-
-                switch (key)
+                var key = Console.ReadKey(true);
+                char dir = char.ToUpper(key.KeyChar);
+                if (key.Key == ConsoleKey.Escape)
                 {
-                    case ConsoleKey.W:
-                        if (direction != "DOWN")
-                            direction = "UP";
+                    nextDirection = "EXIT";
+                    return;
+                }    
+
+                switch (dir)
+                {
+                    case 'W':
+                    case 'Ц':
+                        if (nextDirection != "DOWN")
+                            nextDirection = "UP";
                         break;
-                    case ConsoleKey.S:
-                        if (direction != "UP")
-                            direction = "DOWN";
+                    case 'S':
+                    case 'Ы':
+                        if (nextDirection != "UP")
+                            nextDirection = "DOWN";
                         break;
-                    case ConsoleKey.A:
-                        if (direction != "RIGHT")
-                            direction = "LEFT";
+                    case 'A':
+                    case 'Ф':
+                        if (nextDirection != "RIGHT")
+                            nextDirection = "LEFT";
                         break;
-                    case ConsoleKey.D:
-                        if (direction != "LEFT")
-                            direction = "RIGHT";
+                    case 'D':
+                    case 'В':
+                        if (nextDirection != "LEFT")
+                            nextDirection = "RIGHT";
                         break;
 
-                    case ConsoleKey.E:
-                    case ConsoleKey.Escape:
-                        direction = "EXIT";
-                        break;
+                    case 'E':
+                    case 'У':
+                        nextDirection = "EXIT";
+                        return;
                 }
             }
         }
@@ -69,6 +80,8 @@ namespace SnakeGame
         // движение змейки
         static void SnakeMove()
         {
+            direction = nextDirection;
+
             var head = snake[0];
             (int nx, int ny) newHead = head;
 
@@ -149,7 +162,7 @@ namespace SnakeGame
             }
 
             // увеличение уровня сложности
-            if (appleCounter != 0 && appleCounter % 5 == 0)
+            if (appleCounter != 0 && appleCounter % 5 == 0 && appleCounter > 50)
             {
                 difficulty -= 10;
             }
@@ -170,33 +183,56 @@ namespace SnakeGame
                         // счётчик яблок
                         if (y == 0 && 9 <= x && x <= 11)
                         {
+                            Console.ForegroundColor = ConsoleColor.Yellow;
                             switch (appleCounter)
                             {
                                 case < 10:
-                                    Console.Write($"00{appleCounter}");
-                                    break;
-                                case > 99:
-                                    Console.Write(appleCounter);
-                                    break;
-                                default:
-                                    Console.Write($"0{appleCounter}");
-                                    break;
+                                Console.Write($"00{appleCounter}");
+                                break;
+                            case > 99:
+                                Console.Write(appleCounter);
+                                break;
+                            default:
+                                Console.Write($"0{appleCounter}");
+                                break;
+
                             }
+                            Console.ResetColor();
                             x += 2;
                         }
                         else
+                        {
+                            Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.Write("█");
+                            Console.ResetColor();
+                        }
                     }
                     else
                     {
                         if (x == 0 || x == WIDTH - 1)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Yellow;
                             Console.Write("█");
+                            Console.ResetColor();
+                        }
                         else if ((x, y) == snake[0])
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkGreen;
                             Console.Write("◉");
+                            Console.ResetColor();
+                        }
                         else if (snake.Skip(1).Contains((x, y)))
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkGreen;
                             Console.Write("○");
+                            Console.ResetColor();
+                        }
                         else if (x == food.fx && y == food.fy)
+                        {
+                            Console.ForegroundColor = ConsoleColor.DarkRed;
                             Console.Write("");
+                            Console.ResetColor();
+                        }
                         else
                             Console.Write(" ");
                     }
@@ -223,11 +259,15 @@ namespace SnakeGame
             score *= appleCounter;
 
             ClearConsole();
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("===== Ваш результат =====");
+            Console.ResetColor();
             Console.WriteLine($"Очки: {score}");
             Console.WriteLine($"Яблок съедено: {appleCounter}");
             Console.WriteLine($"Время игры: {playTime.Minutes:F0} минут {playTime.Seconds:F0} секунд");
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("=========================");
+            Console.ResetColor();
 
             Console.WriteLine("Нажмите любую клавишу, чтобы продолжить");
             Console.ReadKey(true);
@@ -238,16 +278,27 @@ namespace SnakeGame
         {
             ClearConsole();
 
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("=================================");
-            Console.WriteLine(" Добро пожаловать в игру Змейка!");
+            Console.ResetColor();
+            Console.Write(" Добро пожаловать в игру ");
+            Console.ForegroundColor = ConsoleColor.DarkGreen;
+            Console.WriteLine("Змейка!");
+            // Console.ResetColor();
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("=================================");
+            Console.ResetColor();
             Console.WriteLine("Управление: W A S D");
             Console.WriteLine("Выход: E/Escape");
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("=================================");
+            Console.ResetColor();
             Console.WriteLine("Выберите пункт: ");
             Console.WriteLine("1. Начать игру");
             Console.WriteLine("2. Выход");
+            Console.ForegroundColor = ConsoleColor.Yellow;
             Console.WriteLine("=================================");
+            Console.ResetColor();
 
             while (true)
             {
@@ -259,6 +310,7 @@ namespace SnakeGame
                         Game();
                         return;
                     case ConsoleKey.D2:
+                        Console.CursorVisible = true;
                         Environment.Exit(0);
                         break;
                 }
@@ -271,12 +323,16 @@ namespace SnakeGame
             while (true)
             {
                 ClearConsole();
-                Console.WriteLine("================================");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("=================================");
+                Console.ResetColor();
                 Console.WriteLine("Выберите уровень сложности: ");
                 Console.WriteLine("1. Лёгкий");
                 Console.WriteLine("2. Средний");
                 Console.WriteLine("3. Сложный");
-                Console.WriteLine("================================");
+                Console.ForegroundColor = ConsoleColor.Yellow;
+                Console.WriteLine("=================================");
+                Console.ResetColor();
 
                 while (true)
                 {
@@ -306,6 +362,7 @@ namespace SnakeGame
         {
             gameOver = false;
             direction = "UP";
+            nextDirection = "UP";
             appleCounter = 0;
             score = 0;
             snake.Clear();
@@ -333,9 +390,7 @@ namespace SnakeGame
 
         static void Main()
         {
-            // РУССКАЯ КЛАВИАТУРА
-            // БЫСТРОЕ ДВИЖЕНИЕ
-            // НАСТРОЙКИ + СТИЛИ??
+            Console.CursorVisible = false;
             while (true)
                 ShowMenu();
         }
